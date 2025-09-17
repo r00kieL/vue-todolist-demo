@@ -4,18 +4,18 @@ import {ref, computed} from 'vue';
 const newTodo = ref('');
 const status = ref('all');
 
-let id = 0
+let id = 0;
 const todos = ref([
   {id: id++, text: "学习vue", done: false},
   {id: id++, text: "学习Three.js", done: false},
   {id: id++, text: "学习英语", done: false},
-])
+]);
 
-const filteredDodos = computed(() => {
-  if (status.value === "all") return todos.value
-  if (status.value === "finished") return todos.value.filter((t) => t.done)
-  if (status.value === "active") return todos.value.filter((t) => !t.done)
-})
+const filteredTodos = computed(() => {
+  if (status.value === "all") return todos.value;
+  if (status.value === "finished") return todos.value.filter((t) => t.done);
+  if (status.value === "active") return todos.value.filter((t) => !t.done);
+});
 
 
 function addTodo() {
@@ -28,7 +28,6 @@ function addTodo() {
 function removeTodo(todoId) {
   todos.value = todos.value.filter((t) => t.id !== todoId);
 }
-
 </script>
 
 <template>
@@ -56,12 +55,12 @@ function removeTodo(todoId) {
         </div>
 
         <ul>
-          <li v-for="todo in filteredDodos" :key="todo.id">
+          <li v-for="todo in filteredTodos" :key="todo.id">
             <div class="left">
               <el-checkbox v-model="todo.done" size="large"/>
               <p :class="{done: todo.done}">{{ todo.text }}</p>
             </div>
-            <button @click="removeTodo(todo.id)">X</button>
+            <button type="button" @click="removeTodo(todo.id)">X</button>
           </li>
         </ul>
       </el-main>
@@ -90,6 +89,8 @@ function removeTodo(todoId) {
 
   font-size: 50px;
   font-weight: bold;
+
+  pointer-events: none;
 }
 
 form {
@@ -167,6 +168,7 @@ ul li {
 
 .selected-status {
   color: #409eff;
+  font-weight: bold;
 }
 
 .input-todo-btn div {
