@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from "vue-router";
 import TodoPage from "/src/view/TodoPage.vue";
-import AboutPage from "/src/view/AboutPage.vue";
+import AboutPage from "/src/view/TodoPage/AboutPage.vue";
 
 const routes = [
     {path: '/', name: 'home', component: TodoPage},

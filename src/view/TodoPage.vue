@@ -1,6 +1,8 @@
 <script setup>
 import {ref, computed, watch} from 'vue';
 
+import TodoItem from '/src/view/TodoPage/TodoItem.vue';
+
 const DEFAULTS = {
   "todos": [],
   "status": "all",
@@ -37,7 +39,7 @@ const filteredTodos = computed(() => {
 function addTodo() {
   if (newTodo.value.trim() === '') return;
 
-  todos.value.push({id: ++id, text: newTodo.value, done: false});
+  todos.value.unshift({id: ++id, text: newTodo.value, done: false});
   newTodo.value = '';
 }
 
@@ -48,6 +50,11 @@ function removeTodo(todoId) {
 function clearCompleted() {
   todos.value = todos.value.filter((t) => !t.done);
   if (status.value === allStatus.finish) status.value = allStatus.all
+}
+
+function toggleTodo(todoId) {
+  const targetItem = todos.value.find((t) => t.id === todoId);
+  if (targetItem) targetItem.done = !targetItem.done;
 }
 
 watch(todos, (v) => saveToLS(k.todos, v), {deep: true});
@@ -99,13 +106,12 @@ function loadFromLS(key, fallback) {
         </div>
 
         <ul>
-          <li v-for="todo in filteredTodos" :key="todo.id">
-            <div class="left">
-              <el-checkbox v-model="todo.done" size="large"/>
-              <p :class="{done: todo.done}">{{ todo.text }}</p>
-            </div>
-            <button type="button" @click="removeTodo(todo.id)">X</button>
-          </li>
+          <TodoItem
+              class="todo-item"
+              :filteredTodos="filteredTodos"
+              @remove-todo="(todoId) => removeTodo(todoId)"
+              @toggle-todo="(todoId) => toggleTodo(todoId)"
+          />
         </ul>
       </el-main>
     </el-container>
@@ -156,33 +162,11 @@ form {
 }
 
 ul {
-  padding: 0;
-  width: 520px;
-  margin-left: 15px;
-
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
 
-ul li {
-  background-color: whitesmoke;
-  height: 60px;
-  width: 100%;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  gap: 10px;
-
-  padding: 0 15px;
-
-  border-radius: 10px;
-}
-
-.done {
-  text-decoration: line-through;
+  padding: 0px;
 }
 
 .state {
