@@ -1,32 +1,65 @@
 <script setup>
-import {ref, computed} from 'vue';
+import {ref, computed, watch} from 'vue';
 
-const newTodo = ref('');
-const status = ref('all');
+const DEFAULTS = {
+  "todos": [],
+  "status": "all",
+};
+
+const allStatus = {
+  all: "all",
+  finish: "finish",
+  active: "active",
+}
+
+const k = {
+  todos: "todos",
+  status: "status",
+
+}
 
 let id = 0;
-const todos = ref([
-  {id: id++, text: "学习vue", done: false},
-  {id: id++, text: "学习Three.js", done: false},
-  {id: id++, text: "学习英语", done: false},
-]);
+const newTodo = ref('');
+
+const todos = ref(loadFromLS(k.todos));
+const status = ref(loadFromLS(k.status));
+
+if (todos.value.length > 0) {
+  id = Math.max(...todos.value.map(t => t.id));
+}
 
 const filteredTodos = computed(() => {
-  if (status.value === "all") return todos.value;
-  if (status.value === "finished") return todos.value.filter((t) => t.done);
-  if (status.value === "active") return todos.value.filter((t) => !t.done);
+  if (status.value === allStatus.all) return todos.value;
+  if (status.value === allStatus.finish) return todos.value.filter((t) => t.done);
+  if (status.value === allStatus.active) return todos.value.filter((t) => !t.done);
 });
-
 
 function addTodo() {
   if (newTodo.value.trim() === '') return;
 
-  todos.value.push({id: id++, text: newTodo.value, done: false});
+  todos.value.push({id: ++id, text: newTodo.value, done: false});
   newTodo.value = '';
 }
 
 function removeTodo(todoId) {
   todos.value = todos.value.filter((t) => t.id !== todoId);
+}
+
+function clearCompleted() {
+  todos.value = todos.value.filter((t) => !t.done);
+  if (status.value === allStatus.finish) status.value = allStatus.all
+}
+
+watch(todos, (v) => saveToLS(k.todos, v), {deep: true});
+watch(status, (v) => saveToLS(k.status, v));
+
+function saveToLS(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function loadFromLS(key, fallback) {
+  const item = localStorage.getItem(key);
+  return item ? JSON.parse(item) : (fallback ?? DEFAULTS[key]);
 }
 </script>
 
@@ -36,7 +69,7 @@ function removeTodo(todoId) {
       <el-header class="header">Todo List</el-header>
 
       <el-main class="main">
-        <form>
+        <form @submit.prevent="addTodo">
           <el-input
               class="input-todo"
               v-model="newTodo"
@@ -49,9 +82,20 @@ function removeTodo(todoId) {
         </form>
 
         <div class="state">
-          <button @click="status = 'all'" :class="{'selected-status' : status === 'all'}">全部</button>
-          <button @click="status = 'finished'" :class="{'selected-status' : status === 'finished'}">已完成</button>
-          <button @click="status = 'active'" :class="{'selected-status' : status === 'active'}">未完成</button>
+          <div class="left">
+            <button @click="status = allStatus.all" :class="{'selected-status' : status === allStatus.all}">
+              全部
+            </button>
+            <button @click="status = allStatus.finish" :class="{'selected-status' : status === allStatus.finish}">
+              已完成
+            </button>
+            <button @click="status = allStatus.active" :class="{'selected-status' : status === allStatus.active}">
+              未完成
+            </button>
+          </div>
+          <div class="right">
+            <button @click="clearCompleted">清理所有已完成的todo</button>
+          </div>
         </div>
 
         <ul>
@@ -113,7 +157,7 @@ form {
 
 ul {
   padding: 0;
-  width: 500px;
+  width: 520px;
   margin-left: 15px;
 
   display: flex;
@@ -144,12 +188,14 @@ ul li {
 .state {
   /*background-color: red;*/
 
-  width: 500px;
+  width: 520px;
   height: 50px;
 
   margin: 15px 0 15px 15px;
 
   display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .state button {
@@ -164,6 +210,14 @@ ul li {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.right button {
+  background: revert;
+}
+
+.right button:hover {
+  color: #409eff;
 }
 
 .selected-status {

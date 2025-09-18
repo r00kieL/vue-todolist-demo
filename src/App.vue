@@ -8,7 +8,6 @@
   </nav>
 
   <RouterView></RouterView>
-
 </template>
 
 <style scoped>
